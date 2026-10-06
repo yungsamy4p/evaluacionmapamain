@@ -1,4 +1,4 @@
-package com.example.evalucionmapamain;
+package com.example.evaluacionmapamain;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -32,6 +32,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Configuration.getInstance().setUserAgentValue(getPackageName());
+
+        Configuration.getInstance().load(getApplicationContext(),
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
+
+        setContentView(R.layout.activity_main);
 
         Configuration.getInstance().load(getApplicationContext(),
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
