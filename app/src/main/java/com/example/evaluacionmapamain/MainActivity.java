@@ -35,6 +35,7 @@ import org.osmdroid.views.overlay.Marker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,8 +44,6 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationClient;
 
     private String tipoSeleccionado = "Policía";
-
-    // Lista para guardar las alertas dinámicas y poder borrarlas
     private final List<Marker> marcadoresDinamicos = new ArrayList<>();
 
     @Override
@@ -60,39 +59,113 @@ public class MainActivity extends AppCompatActivity {
         mapView = findViewById(R.id.mapView);
         mapView.setTileSource(TileSourceFactory.OpenTopo);
 
-        // --- CONTROLES DE ZOOM ---
-        mapView.setMultiTouchControls(true); // Zoom táctil con dedos
-        mapView.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.ALWAYS); // Botones visuales + y -
+        // Controles de zoom
+        mapView.setMultiTouchControls(true);
+        mapView.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.ALWAYS);
         mapView.getController().setZoom(15.0);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         configurarMenuTipos();
+
+        // 1. PUNTOS FIJOS EN LAS COORDENADAS QUE DEFINAS EN EL CÓDIGO
         agregarPuntosFijos();
+
+        // 2. CREACIÓN INTERACTIVA DE PUNTOS
         habilitarSeleccionDePuntos();
 
-        // Botón GPS
+        // Botón GPS flotante
         FloatingActionButton btnGps = findViewById(R.id.btnGps);
         btnGps.setOnClickListener(v -> verificarPermisosYUbicar());
 
-        // Botón Limpiar Alertas
+        // Botón Limpiar marcadores dinámicos
         Button btnLimpiar = findViewById(R.id.btnLimpiar);
         btnLimpiar.setOnClickListener(v -> limpiarMarcadoresDinamicos());
 
+        // 3. OBTENER UBICACIÓN AUTOMÁTICAMENTE AL INICIAR
         verificarPermisosYUbicar();
     }
 
     /**
-     * Reduce el tamaño de cualquier drawable a píxeles definidos
+     * AQUÍ PUEDES CAMBIAR LAS COORDENADAS FIJAS QUE TÚ QUIERAS
      */
-    private Drawable obtenerIconoEscalado(int resId, int ancho, int alto) {
-        Drawable drawable = ContextCompat.getDrawable(this, resId);
-        if (drawable instanceof BitmapDrawable) {
-            Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-            Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, ancho, alto, true);
-            return new BitmapDrawable(getResources(), scaledBitmap);
+    private void agregarPuntosFijos() {
+        // ===============================================================
+        // MODIFICA AQUÍ TUS COORDENADAS (Latitud, Longitud)
+        // Ejemplo actual: Coordenadas de Santiago de Chile
+        // ===============================================================
+        double latPunto1 = -33.4372;
+        double lonPunto1 = -70.6345;
+
+        double latPunto2 = -33.4429;
+        double lonPunto2 = -70.6539;
+
+        double latPunto3 = -33.4866; // Puedes agregar los puntos fijos que gustes
+        double lonPunto3 = -70.6033;
+        // ===============================================================
+
+        // Punto Fijo 1: Control Policial
+        GeoPoint coord1 = new GeoPoint(latPunto1, lonPunto1);
+        Marker punto1 = new Marker(mapView);
+        punto1.setPosition(coord1);
+        punto1.setTitle("Puesto Fijo: Control Policial");
+        punto1.setSnippet(String.format(Locale.getDefault(), "Lat: %.5f | Lon: %.5f", latPunto1, lonPunto1));
+        punto1.setIcon(obtenerIconoEscalado(R.mipmap.ic_policia, 55, 55));
+        mapView.getOverlays().add(punto1);
+
+        // Punto Fijo 2: Zona de Accidente
+        GeoPoint coord2 = new GeoPoint(latPunto2, lonPunto2);
+        Marker punto2 = new Marker(mapView);
+        punto2.setPosition(coord2);
+        punto2.setTitle("Punto Fijo: Accidente Recurrente");
+        punto2.setSnippet(String.format(Locale.getDefault(), "Lat: %.5f | Lon: %.5f", latPunto2, lonPunto2));
+        punto2.setIcon(obtenerIconoEscalado(R.mipmap.ic_accidente, 55, 55));
+        mapView.getOverlays().add(punto2);
+
+        // Centrar inicialmente el mapa en el primer punto fijo antes de que cargue el GPS
+        mapView.getController().setCenter(coord1);
+    }
+
+    /**
+     * OBTIENE LA UBICACIÓN Y MUESTRA COORDENADAS EN PANTALLA Y EN EL MARCADOR
+     */
+    private void obtenerUbicacionActual() {
+        try {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+                if (location != null) {
+                    double miLat = location.getLatitude();
+                    double miLon = location.getLongitude();
+
+                    GeoPoint miUbicacion = new GeoPoint(miLat, miLon);
+                    mapView.getController().animateTo(miUbicacion);
+                    mapView.getController().setZoom(17.0);
+
+                    // Marcador de tu posición actual
+                    Marker miPosicion = new Marker(mapView);
+                    miPosicion.setPosition(miUbicacion);
+                    miPosicion.setTitle("Mi Ubicación Actual");
+
+                    // Texto con las coordenadas exactas dentro del marcador
+                    String textoCoordenadas = String.format(Locale.getDefault(), "Lat: %.6f\nLon: %.6f", miLat, miLon);
+                    miPosicion.setSnippet(textoCoordenadas);
+                    miPosicion.setIcon(ContextCompat.getDrawable(this, android.R.drawable.ic_menu_mylocation));
+
+                    mapView.getOverlays().add(miPosicion);
+                    mapView.invalidate();
+
+                    // 1. Abre automáticamente el globito de texto sobre tu ubicación
+                    miPosicion.showInfoWindow();
+
+                    // 2. Muestra un mensaje Toast en la pantalla con las coordenadas
+                    Toast.makeText(this, "Tu ubicación:\n" + textoCoordenadas, Toast.LENGTH_LONG).show();
+
+                } else {
+                    Toast.makeText(this, "Buscando señal GPS... Asegúrate de tenerlo activado", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (SecurityException e) {
+            e.printStackTrace();
         }
-        return drawable;
     }
 
     private void configurarMenuTipos() {
@@ -112,29 +185,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-    }
-
-    private void agregarPuntosFijos() {
-        GeoPoint coordFija1 = new GeoPoint(-33.4372, -70.6345);
-        GeoPoint coordFija2 = new GeoPoint(-33.4429, -70.6539);
-
-        mapView.getController().setCenter(coordFija1);
-
-        // Punto fijo 1: Policía (Escalado a 60x60 px)
-        Marker puntoPolicia = new Marker(mapView);
-        puntoPolicia.setPosition(coordFija1);
-        puntoPolicia.setTitle("Puesto Fijo: Patrulla Policial");
-        puntoPolicia.setSnippet("Vigilancia constante");
-        puntoPolicia.setIcon(obtenerIconoEscalado(R.mipmap.ic_policia, 60, 60));
-        mapView.getOverlays().add(puntoPolicia);
-
-        // Punto fijo 2: Accidente (Escalado a 60x60 px)
-        Marker puntoAccidente = new Marker(mapView);
-        puntoAccidente.setPosition(coordFija2);
-        puntoAccidente.setTitle("Punto Crítico: Accidente");
-        puntoAccidente.setSnippet("Precaución al transitar");
-        puntoAccidente.setIcon(obtenerIconoEscalado(R.mipmap.ic_accidente, 60, 60));
-        mapView.getOverlays().add(puntoAccidente);
     }
 
     private void habilitarSeleccionDePuntos() {
@@ -157,26 +207,27 @@ public class MainActivity extends AppCompatActivity {
         Marker nuevoMarcador = new Marker(mapView);
         nuevoMarcador.setPosition(punto);
 
+        String coords = String.format(Locale.getDefault(), "Lat: %.5f | Lon: %.5f", punto.getLatitude(), punto.getLongitude());
+
         Drawable icono;
         if (tipoSeleccionado.equals("Policía")) {
             nuevoMarcador.setTitle("Alerta: Policía");
-            nuevoMarcador.setSnippet("Toca aquí para eliminar");
-            icono = obtenerIconoEscalado(R.mipmap.ic_policia, 55, 55); // Tamaño reducido
+            nuevoMarcador.setSnippet(coords + "\n(Toca para eliminar)");
+            icono = obtenerIconoEscalado(R.mipmap.ic_policia, 55, 55);
         } else {
             nuevoMarcador.setTitle("Alerta: Accidente");
-            nuevoMarcador.setSnippet("Toca aquí para eliminar");
-            icono = obtenerIconoEscalado(R.mipmap.ic_accidente, 55, 55); // Tamaño reducido
+            nuevoMarcador.setSnippet(coords + "\n(Toca para eliminar)");
+            icono = obtenerIconoEscalado(R.mipmap.ic_accidente, 55, 55);
         }
 
         nuevoMarcador.setIcon(icono);
 
-        // --- OPCIÓN DE ELIMINAR EL MARCADOR INDIVIDUALMENTE ---
+        // Eliminar al tocar la ventana informativa
         nuevoMarcador.setOnMarkerClickListener((marker, mapView1) -> {
             marker.showInfoWindow();
             return true;
         });
 
-        // Al hacer clic en el globito de texto (InfoWindow), te da la opción de eliminarlo
         nuevoMarcador.getInfoWindow().getView().setOnClickListener(v -> {
             new AlertDialog.Builder(MainActivity.this)
                     .setTitle("Eliminar Alerta")
@@ -196,7 +247,8 @@ public class MainActivity extends AppCompatActivity {
         marcadoresDinamicos.add(nuevoMarcador);
         mapView.invalidate();
 
-        Toast.makeText(this, tipoSeleccionado + " añadido", Toast.LENGTH_SHORT).show();
+        // Mostrar de inmediato la ventana con sus coordenadas
+        nuevoMarcador.showInfoWindow();
     }
 
     private void limpiarMarcadoresDinamicos() {
@@ -207,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
 
         new AlertDialog.Builder(this)
                 .setTitle("Limpiar Mapa")
-                .setMessage("¿Deseas borrar todas las alertas que has colocado?")
+                .setMessage("¿Deseas borrar todas las alertas que colocaste?")
                 .setPositiveButton("Borrar Todo", (dialog, which) -> {
                     for (Marker m : marcadoresDinamicos) {
                         mapView.getOverlays().remove(m);
@@ -221,6 +273,16 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    private Drawable obtenerIconoEscalado(int resId, int ancho, int alto) {
+        Drawable drawable = ContextCompat.getDrawable(this, resId);
+        if (drawable instanceof BitmapDrawable) {
+            Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, ancho, alto, true);
+            return new BitmapDrawable(getResources(), scaledBitmap);
+        }
+        return drawable;
+    }
+
     private void verificarPermisosYUbicar() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -229,29 +291,6 @@ public class MainActivity extends AppCompatActivity {
                     LOCATION_PERMISSION_REQUEST_CODE);
         } else {
             obtenerUbicacionActual();
-        }
-    }
-
-    private void obtenerUbicacionActual() {
-        try {
-            fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
-                if (location != null) {
-                    GeoPoint miUbicacion = new GeoPoint(location.getLatitude(), location.getLongitude());
-                    mapView.getController().animateTo(miUbicacion);
-                    mapView.getController().setZoom(17.0);
-
-                    Marker miPosicion = new Marker(mapView);
-                    miPosicion.setPosition(miUbicacion);
-                    miPosicion.setTitle("Mi Ubicación Actual");
-                    miPosicion.setIcon(ContextCompat.getDrawable(this, android.R.drawable.ic_menu_mylocation));
-                    mapView.getOverlays().add(miPosicion);
-                    mapView.invalidate();
-                } else {
-                    Toast.makeText(this, "Activa el GPS en el dispositivo o emulador", Toast.LENGTH_SHORT).show();
-                }
-            });
-        } catch (SecurityException e) {
-            e.printStackTrace();
         }
     }
 
