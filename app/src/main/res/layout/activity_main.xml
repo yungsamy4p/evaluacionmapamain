@@ -84,12 +84,19 @@
             <!-- Botón de limpiar minimalista con ícono de papelera -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLimpiar"
-                style="@style/Widget.MaterialComponents.Button.IconButton"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="0dp"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
                 app:icon="@android:drawable/ic_menu_delete"
                 app:iconTint="#EF4444"
-                app:iconSize="20dp"
+                app:iconSize="22dp"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
                 android:contentDescription="Limpiar mapa" />
 
         </LinearLayout>
