@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.android.material.button.MaterialButtonToggleGroup;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
@@ -142,21 +144,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void configurarMenuTipos() {
-        Spinner spinner = findViewById(R.id.spinnerTipoPunto);
-        String[] opciones = {"Policía", "Accidente"};
+        MaterialButtonToggleGroup toggleGroup = findViewById(R.id.toggleGroupAlertas);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item, opciones);
-        spinner.setAdapter(adapter);
+        // Dejar seleccionada la opción de Policía por defecto
+        toggleGroup.check(R.id.btnOpcionPolicia);
 
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                tipoSeleccionado = opciones[position];
+        toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (isChecked) {
+                if (checkedId == R.id.btnOpcionPolicia) {
+                    tipoSeleccionado = "Policía";
+                } else if (checkedId == R.id.btnOpcionAccidente) {
+                    tipoSeleccionado = "Accidente";
+                }
             }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
