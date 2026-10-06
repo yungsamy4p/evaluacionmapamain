@@ -5,13 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Visor del Mapa -->
+    <!-- Mapa OpenStreetMap -->
     <org.osmdroid.views.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Menú desplegable flotante superior -->
+    <!-- Barra de selección y botón de borrado -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,25 +26,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="12dp"
+            android:padding="8dp"
             android:gravity="center_vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Marcador:"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginEnd="12dp" />
 
             <Spinner
                 android:id="@+id/spinnerTipoPunto"
-                android:layout_width="match_parent"
-                android:layout_height="48dp" />
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1" />
+
+            <!-- Botón para quitar/limpiar puntos colocados -->
+            <Button
+                android:id="@+id/btnLimpiar"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Limpiar"
+                android:textColor="@android:color/holo_red_dark" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Botón flotante para centrar con GPS -->
+    <!-- Botón flotante GPS -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnGps"
         android:layout_width="wrap_content"
