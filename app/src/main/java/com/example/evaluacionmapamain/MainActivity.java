@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
         configurarMenuTipos();
 
-        // 1. PUNTOS FIJOS EN LAS COORDENADAS QUE DEFINAS EN EL CÓDIGO
+        // PUNTOS FIJOS EN LAS COORDENADAS QUE DEFINAS EN EL CÓDIGO
         agregarPuntosFijos();
 
         // 2. CREACIÓN INTERACTIVA DE PUNTOS
@@ -86,25 +86,16 @@ public class MainActivity extends AppCompatActivity {
         verificarPermisosYUbicar();
     }
 
-    /**
-     * AQUÍ PUEDES CAMBIAR LAS COORDENADAS FIJAS QUE TÚ QUIERAS
-     */
     private void agregarPuntosFijos() {
-        // ===============================================================
-        // MODIFICA AQUÍ TUS COORDENADAS (Latitud, Longitud)
-        // Ejemplo actual: Coordenadas de Santiago de Chile
-        // ===============================================================
-        double latPunto1 = -33.4372;
-        double lonPunto1 = -70.6345;
 
-        double latPunto2 = -33.4429;
-        double lonPunto2 = -70.6539;
+        double latPunto1 = -33.510151088681454;
+        double lonPunto1 = -70.58832547365456;
 
-        double latPunto3 = -33.4866; // Puedes agregar los puntos fijos que gustes
-        double lonPunto3 = -70.6033;
-        // ===============================================================
+        double latPunto2 = -33.510353213128674;
+        double lonPunto2 = -70.58241176630621;
 
-        // Punto Fijo 1: Control Policial
+
+        // Control Policial
         GeoPoint coord1 = new GeoPoint(latPunto1, lonPunto1);
         Marker punto1 = new Marker(mapView);
         punto1.setPosition(coord1);
@@ -113,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         punto1.setIcon(obtenerIconoEscalado(R.mipmap.ic_policia, 55, 55));
         mapView.getOverlays().add(punto1);
 
-        // Punto Fijo 2: Zona de Accidente
+        // Zona de Accidente
         GeoPoint coord2 = new GeoPoint(latPunto2, lonPunto2);
         Marker punto2 = new Marker(mapView);
         punto2.setPosition(coord2);
@@ -122,50 +113,32 @@ public class MainActivity extends AppCompatActivity {
         punto2.setIcon(obtenerIconoEscalado(R.mipmap.ic_accidente, 55, 55));
         mapView.getOverlays().add(punto2);
 
-        // Centrar inicialmente el mapa en el primer punto fijo antes de que cargue el GPS
         mapView.getController().setCenter(coord1);
     }
 
-    /**
-     * OBTIENE LA UBICACIÓN Y MUESTRA COORDENADAS EN PANTALLA Y EN EL MARCADOR
-     */
     private void obtenerUbicacionActual() {
-        try {
-            fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
-                if (location != null) {
-                    double miLat = location.getLatitude();
-                    double miLon = location.getLongitude();
+        // Coordenadas fijadas manualmente
+        double miLat = -33.514043466757705;
+        double miLon = -70.58495472492446;
 
-                    GeoPoint miUbicacion = new GeoPoint(miLat, miLon);
-                    mapView.getController().animateTo(miUbicacion);
-                    mapView.getController().setZoom(17.0);
+        GeoPoint miUbicacion = new GeoPoint(miLat, miLon);
+        mapView.getController().animateTo(miUbicacion);
+        mapView.getController().setZoom(17.0);
 
-                    // Marcador de tu posición actual
-                    Marker miPosicion = new Marker(mapView);
-                    miPosicion.setPosition(miUbicacion);
-                    miPosicion.setTitle("Mi Ubicación Actual");
+        // Marcador de posición actual
+        Marker miPosicion = new Marker(mapView);
+        miPosicion.setPosition(miUbicacion);
+        miPosicion.setTitle("Mi Ubicación Actual");
 
-                    // Texto con las coordenadas exactas dentro del marcador
-                    String textoCoordenadas = String.format(Locale.getDefault(), "Lat: %.6f\nLon: %.6f", miLat, miLon);
-                    miPosicion.setSnippet(textoCoordenadas);
-                    miPosicion.setIcon(ContextCompat.getDrawable(this, android.R.drawable.ic_menu_mylocation));
+        String textoCoordenadas = String.format(Locale.getDefault(), "Lat: %.6f\nLon: %.6f", miLat, miLon);
+        miPosicion.setSnippet(textoCoordenadas);
+        miPosicion.setIcon(ContextCompat.getDrawable(this, android.R.drawable.ic_menu_mylocation));
 
-                    mapView.getOverlays().add(miPosicion);
-                    mapView.invalidate();
+        mapView.getOverlays().add(miPosicion);
+        mapView.invalidate();
 
-                    // 1. Abre automáticamente el globito de texto sobre tu ubicación
-                    miPosicion.showInfoWindow();
-
-                    // 2. Muestra un mensaje Toast en la pantalla con las coordenadas
-                    Toast.makeText(this, "Tu ubicación:\n" + textoCoordenadas, Toast.LENGTH_LONG).show();
-
-                } else {
-                    Toast.makeText(this, "Buscando señal GPS... Asegúrate de tenerlo activado", Toast.LENGTH_SHORT).show();
-                }
-            });
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }
+        miPosicion.showInfoWindow();
+        Toast.makeText(this, "Tu ubicación:\n" + textoCoordenadas, Toast.LENGTH_LONG).show();
     }
 
     private void configurarMenuTipos() {
