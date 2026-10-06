@@ -22,6 +22,8 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
 
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
@@ -32,20 +34,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Configuration.getInstance().setUserAgentValue(getPackageName());
-
-        Configuration.getInstance().load(getApplicationContext(),
-                PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
-
-        setContentView(R.layout.activity_main);
-
+        Configuration.getInstance().setUserAgentValue("EvaluacionMapaApp/1.0 (" + getPackageName() + ")");
         Configuration.getInstance().load(getApplicationContext(),
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
 
         setContentView(R.layout.activity_main);
 
         mapView = findViewById(R.id.mapView);
-        mapView.setMultiTouchControls(true); // Permite zoom con los dedos
+
+        mapView.setTileSource(TileSourceFactory.OpenTopo);
+
+        mapView.setMultiTouchControls(true);
         mapView.getController().setZoom(15.0);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
