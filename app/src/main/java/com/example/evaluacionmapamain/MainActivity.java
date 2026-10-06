@@ -1,9 +1,14 @@
-package com.example.evaluacionmapamain;
+package com.example.evaluacionmapamain; // Ajusta si en tu proyecto se llama com.example.evalucionmapamain
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -17,12 +22,11 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.events.MapEventsReceiver;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
-
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,58 +34,92 @@ public class MainActivity extends AppCompatActivity {
     private MapView mapView;
     private FusedLocationProviderClient fusedLocationClient;
 
+    // Estado del tipo de marcador seleccionado en el Spinner
+    private String tipoSeleccionado = "Policía";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Configuration.getInstance().setUserAgentValue("EvaluacionMapaApp/1.0 (" + getPackageName() + ")");
+        // 1. Identificación ante OpenStreetMap
+        Configuration.getInstance().setUserAgentValue("EvaluacionApp/1.0 (" + getPackageName() + ")");
         Configuration.getInstance().load(getApplicationContext(),
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
 
         setContentView(R.layout.activity_main);
 
+        // 2. Inicializar MapView con el servidor libre OpenTopo
         mapView = findViewById(R.id.mapView);
-
         mapView.setTileSource(TileSourceFactory.OpenTopo);
-
         mapView.setMultiTouchControls(true);
         mapView.getController().setZoom(15.0);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        //  PUNTOS FIJOS
+        // 3. Menú desplegable superior
+        configurarMenuTipos();
+
+        // 4. Marcadores estáticos predefinidos con tus iconos mipmap
         agregarPuntosFijos();
 
-        //  AÑADIR PUNTOS SELECCIONABLES (Click o pulsación larga en el mapa)
+        // 5. Permitir pulsar en el mapa para añadir nuevos puntos
         habilitarSeleccionDePuntos();
 
-        //  GEOLOCALIZACIÓN
+        // 6. Botón de centrado mediante GPS
         FloatingActionButton btnGps = findViewById(R.id.btnGps);
         btnGps.setOnClickListener(v -> verificarPermisosYUbicar());
 
         verificarPermisosYUbicar();
     }
 
+    private void configurarMenuTipos() {
+        Spinner spinner = findViewById(R.id.spinnerTipoPunto);
+        String[] opciones = {"Policía", "Accidente"};
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, opciones);
+        spinner.setAdapter(adapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                tipoSeleccionado = opciones[position];
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
     private void agregarPuntosFijos() {
-        // Ejemplo de punto fijo
-        GeoPoint puntoInicial = new GeoPoint(-33.4569, -70.6483);
-        mapView.getController().setCenter(puntoInicial);
+        // Coordenadas fijas de ejemplo (puedes cambiarlas por las que tú elijas)
+        GeoPoint coordFija1 = new GeoPoint(-33.4372, -70.6345); // Coordenada Fija 1
+        GeoPoint coordFija2 = new GeoPoint(-33.4429, -70.6539); // Coordenada Fija 2
 
-        Marker marcadorFijo = new Marker(mapView);
-        marcadorFijo.setPosition(puntoInicial);
-        marcadorFijo.setTitle("Punto Fijo 1");
-        marcadorFijo.setSnippet("Ubicación de referencia asignada");
+        // Centrar mapa inicialmente en el primer punto
+        mapView.getController().setCenter(coordFija1);
 
-        // Asignar icono personalizado del sistema
-        marcadorFijo.setIcon(ContextCompat.getDrawable(this, android.R.drawable.ic_dialog_map));
-        mapView.getOverlays().add(marcadorFijo);
+        // Marcador Fijo de Policía (Usa el recurso de Image Asset creado en mipmap)
+        Marker puntoPolicia = new Marker(mapView);
+        puntoPolicia.setPosition(coordFija1);
+        puntoPolicia.setTitle("Puesto Fijo: Patrulla Policial");
+        puntoPolicia.setSnippet("Vigilancia constante");
+        puntoPolicia.setIcon(ContextCompat.getDrawable(this, R.mipmap.ic_policia));
+        mapView.getOverlays().add(puntoPolicia);
+
+        // Marcador Fijo de Accidente
+        Marker puntoAccidente = new Marker(mapView);
+        puntoAccidente.setPosition(coordFija2);
+        puntoAccidente.setTitle("Punto Crítico: Accidente Recurrente");
+        puntoAccidente.setSnippet("Precaución: zona de alto riesgo");
+        puntoAccidente.setIcon(ContextCompat.getDrawable(this, R.mipmap.ic_accidente));
+        mapView.getOverlays().add(puntoAccidente);
     }
 
     private void habilitarSeleccionDePuntos() {
-        MapEventsOverlay mapEventsOverlay = new MapEventsOverlay(new MapEventsReceiver() {
+        MapEventsOverlay overlay = new MapEventsOverlay(new MapEventsReceiver() {
             @Override
             public boolean singleTapConfirmedHelper(GeoPoint p) {
-                // Al pulsar un lugar del mapa, se agrega un nuevo marcador
                 crearMarcadorDinamico(p);
                 return true;
             }
@@ -91,21 +129,29 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
-        mapView.getOverlays().add(0, mapEventsOverlay);
+        mapView.getOverlays().add(0, overlay);
     }
 
     private void crearMarcadorDinamico(GeoPoint punto) {
         Marker nuevoMarcador = new Marker(mapView);
         nuevoMarcador.setPosition(punto);
-        nuevoMarcador.setTitle("Punto Seleccionado");
-        nuevoMarcador.setSnippet("Lat: " + punto.getLatitude() + ", Lon: " + punto.getLongitude());
 
-        // Icono diferenciado para puntos seleccionados por el usuario
-        nuevoMarcador.setIcon(ContextCompat.getDrawable(this, android.R.drawable.ic_input_add));
+        Drawable icono;
+        if (tipoSeleccionado.equals("Policía")) {
+            nuevoMarcador.setTitle("Alerta: Control Policial");
+            nuevoMarcador.setSnippet("Lat: " + punto.getLatitude() + ", Lon: " + punto.getLongitude());
+            icono = ContextCompat.getDrawable(this, R.mipmap.ic_policia);
+        } else {
+            nuevoMarcador.setTitle("Alerta: Accidente de Tránsito");
+            nuevoMarcador.setSnippet("Lat: " + punto.getLatitude() + ", Lon: " + punto.getLongitude());
+            icono = ContextCompat.getDrawable(this, R.mipmap.ic_accidente);
+        }
 
+        nuevoMarcador.setIcon(icono);
         mapView.getOverlays().add(nuevoMarcador);
-        mapView.invalidate(); // Refresca el mapa para pintar el nuevo icono
-        Toast.makeText(this, "Marcador añadido en la posición tocada", Toast.LENGTH_SHORT).show();
+        mapView.invalidate(); // Redibujar mapa para renderizar el nuevo ícono
+
+        Toast.makeText(this, tipoSeleccionado + " agregado al mapa", Toast.LENGTH_SHORT).show();
     }
 
     private void verificarPermisosYUbicar() {
@@ -127,16 +173,15 @@ public class MainActivity extends AppCompatActivity {
                     mapView.getController().animateTo(miUbicacion);
                     mapView.getController().setZoom(17.0);
 
-                    // Marcador de posición actual con icono de geolocalización
-                    Marker miPosicionMarker = new Marker(mapView);
-                    miPosicionMarker.setPosition(miUbicacion);
-                    miPosicionMarker.setTitle("Mi Ubicación Actual");
-                    miPosicionMarker.setIcon(ContextCompat.getDrawable(this, android.R.drawable.ic_menu_mylocation));
-
-                    mapView.getOverlays().add(miPosicionMarker);
+                    // Marcador con la ubicación del usuario
+                    Marker miPosicion = new Marker(mapView);
+                    miPosicion.setPosition(miUbicacion);
+                    miPosicion.setTitle("Mi Ubicación Actual");
+                    miPosicion.setIcon(ContextCompat.getDrawable(this, android.R.drawable.ic_menu_mylocation));
+                    mapView.getOverlays().add(miPosicion);
                     mapView.invalidate();
                 } else {
-                    Toast.makeText(this, "Asegúrate de activar el GPS en el dispositivo", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Activa el GPS en el dispositivo o emulador", Toast.LENGTH_SHORT).show();
                 }
             });
         } catch (SecurityException e) {
