@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         // PUNTOS FIJOS EN LAS COORDENADAS QUE DEFINAS EN EL CÓDIGO
         agregarPuntosFijos();
 
-        // 2. CREACIÓN INTERACTIVA DE PUNTOS
+        // CREACIÓN INTERACTIVA DE PUNTOS
         habilitarSeleccionDePuntos();
 
         // Botón GPS flotante
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnLimpiar = findViewById(R.id.btnLimpiar);
         btnLimpiar.setOnClickListener(v -> limpiarMarcadoresDinamicos());
 
-        // 3. OBTENER UBICACIÓN AUTOMÁTICAMENTE AL INICIAR
+        // OBTENER UBICACIÓN AUTOMÁTICAMENTE AL INICIAR
         verificarPermisosYUbicar();
     }
 

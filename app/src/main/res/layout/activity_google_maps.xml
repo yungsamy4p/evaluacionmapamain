@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Fragment de Google Maps -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/mapGoogle"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Selector minimalista idéntico -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="8dp"
+        app:strokeWidth="0dp"
+        app:cardBackgroundColor="#F2FFFFFF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp">
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleGroupGoogle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGMapPolicia"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:text="Policía"
+                    android:textSize="12sp"
+                    android:textAllCaps="false"
+                    android:textColor="#1E293B"
+                    app:icon="@mipmap/ic_policia"
+                    app:iconSize="18dp"
+                    app:iconTint="@null"
+                    app:cornerRadius="20dp"
+                    app:strokeColor="#CBD5E1"
+                    app:strokeWidth="1dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGMapAccidente"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:text="Accidente"
+                    android:textSize="12sp"
+                    android:textAllCaps="false"
+                    android:textColor="#1E293B"
+                    app:icon="@mipmap/ic_accidente"
+                    app:iconSize="18dp"
+                    app:iconTint="@null"
+                    app:cornerRadius="20dp"
+                    app:strokeColor="#CBD5E1"
+                    app:strokeWidth="1dp" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="22dp"
+                android:background="#E2E8F0"
+                android:layout_marginHorizontal="6dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLimpiarGoogle"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="0dp"
+                app:icon="@android:drawable/ic_menu_delete"
+                app:iconTint="#EF4444"
+                app:iconSize="22dp"
+                android:contentDescription="Limpiar mapa" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
